@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, MapPin, Phone, ChevronRight, Instagram, Facebook, Menu, X, Flame, Utensils, Sparkles, ArrowRight, Send, XCircle, Clock } from 'lucide-react';
 
+import { menuItems } from './data/menuItems';
+
 // --- CONFIGURACIÓN GLOBAL ---
 const apiKey = import.meta.env.VITE_GOOGLE_API_KEY; // Inyectada desde .env
 
@@ -139,7 +141,17 @@ const ConciergeSection = () => {
     if (!input.trim()) return;
     setLoading(true);
     try {
-      const prompt = `Eres el Concierge de Mambo's, un restaurante urbano de lujo. Tu tono es exclusivo, breve y con jerga peruana fina ('batería', 'fino'). Recomienda algo del menú basándote en: "${input}". Máximo 20 palabras.`;
+      const menuContext = JSON.stringify(menuItems);
+      const prompt = `
+        Eres "El Tío Mambo", dueño de Mambo's Fast Food.
+        TU MENÚ ES ESTE Y SOLO ESTE: ${menuContext}.
+        NO inventes platos. NO recomiendes nada que no esté en esa lista.
+        Si te dicen un monto (ej. "tengo 20 soles"), busca en el menú qué alcanza con ese dinero y recomiéndalo.
+        Tu tono es: peruano callejero fino ("batería", "causa", "fino"), breve y directo.
+        Usuario dice: "${input}".
+        Responde en máximo 25 palabras.
+      `;
+
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,6 +160,7 @@ const ConciergeSection = () => {
       const data = await res.json();
       setResponse(data.candidates?.[0]?.content?.parts?.[0]?.text);
     } catch (e) { console.error(e); } finally { setLoading(false); }
+
   };
 
   return (
